@@ -56,9 +56,14 @@ async function fetchHistoryData(env, sys, request, id, hours, columns) {
   const history = await env.DB.prepare(`
     SELECT timestamp, ${columns}
     FROM metrics_history
-    WHERE server_id = ? AND timestamp > ?
+    WHERE server_id = ?
+    AND (
+      (typeof(timestamp) = 'integer' AND timestamp > ?)
+      OR
+      (typeof(timestamp) = 'text' AND timestamp > datetime('now', '-' || ? || ' hours'))
+    )
     ORDER BY timestamp ASC
-  `).bind(id, cutoff).all();
+  `).bind(id, cutoff, hours).all();
   
   const processed = history.results.map(row => {
     let ts = row.timestamp;
