@@ -8,6 +8,31 @@ import { checkAuth, authResponse } from './middleware/auth.js';
 
 let dbInitialized = false;
 
+function downsampleData(data, hours) {
+  if (data.length <= 1) return data;
+  
+  let intervalMs;
+  if (hours <= 4) {
+    return data;
+  } else if (hours <= 24) {
+    intervalMs = 5 * 60 * 1000;
+  } else {
+    intervalMs = 30 * 60 * 1000;
+  }
+  
+  const sampled = [];
+  let lastTimestamp = null;
+  
+  for (const point of data) {
+    if (lastTimestamp === null || point.timestamp - lastTimestamp >= intervalMs) {
+      sampled.push(point);
+      lastTimestamp = point.timestamp;
+    }
+  }
+  
+  return sampled;
+}
+
 export default {
   async fetch(request, env, ctx) {
     // 数据库初始化
@@ -86,7 +111,7 @@ export default {
       `).bind(id, cutoff, hours).all();
       
       // 转换旧格式的日期字符串为时间戳
-      const processed = history.results.map(row => {
+      let processed = history.results.map(row => {
         let ts = row.timestamp;
         // 如果是字符串格式，转换为时间戳
         if (typeof ts === 'string') {
@@ -97,6 +122,9 @@ export default {
           timestamp: ts
         };
       });
+      
+      // 根据时间跨度采样数据
+      processed = downsampleData(processed, hours);
       
       return new Response(JSON.stringify(processed), {
         headers: { 'Content-Type': 'application/json' }
@@ -142,7 +170,7 @@ export default {
       `).bind(id, cutoff, hours).all();
       
       // 转换旧格式的日期字符串为时间戳
-      const processed = history.results.map(row => {
+      let processed = history.results.map(row => {
         let ts = row.timestamp;
         if (typeof ts === 'string') {
           ts = new Date(ts).getTime();
@@ -152,6 +180,9 @@ export default {
           timestamp: ts
         };
       });
+      
+      // 根据时间跨度采样数据
+      processed = downsampleData(processed, hours);
       
       return new Response(JSON.stringify(processed), {
         headers: { 'Content-Type': 'application/json' }
