@@ -286,17 +286,17 @@ async function aggregateFromRaw(db, startTime, endTime, bucketSeconds, phaseName
       server_id,
       CAST(timestamp / ? AS INTEGER) * ? AS bucket,
       ? AS bucket_size,
-      AVG(cpu), MAX(cpu),
-      AVG(ram), MAX(ram),
-      AVG(disk), MAX(disk),
-      AVG(CAST(load_avg AS REAL)),
-      AVG(net_in_speed), AVG(net_out_speed),
-      AVG(net_rx), AVG(net_tx),
-      AVG(processes), AVG(tcp_conn), AVG(udp_conn),
-      AVG(ping_ct), AVG(ping_cu), AVG(ping_cm), AVG(ping_bd),
-      AVG(ram_total), AVG(ram_used),
-      AVG(swap_total), AVG(swap_used),
-      AVG(disk_total), AVG(disk_used)
+      ROUND(AVG(cpu), 2), MAX(cpu),
+      ROUND(AVG(ram), 2), MAX(ram),
+      ROUND(AVG(disk), 2), MAX(disk),
+      ROUND(AVG(CAST(load_avg AS REAL)), 2),
+      ROUND(AVG(net_in_speed), 2), ROUND(AVG(net_out_speed), 2),
+      ROUND(AVG(net_rx), 2), ROUND(AVG(net_tx), 2),
+      ROUND(AVG(processes), 2), ROUND(AVG(tcp_conn), 2), ROUND(AVG(udp_conn), 2),
+      ROUND(AVG(ping_ct), 2), ROUND(AVG(ping_cu), 2), ROUND(AVG(ping_cm), 2), ROUND(AVG(ping_bd), 2),
+      ROUND(AVG(ram_total), 2), ROUND(AVG(ram_used), 2),
+      ROUND(AVG(swap_total), 2), ROUND(AVG(swap_used), 2),
+      ROUND(AVG(disk_total), 2), ROUND(AVG(disk_used), 2)
     FROM metrics_history
     WHERE typeof(timestamp) = 'integer'
       AND timestamp >= ?
@@ -392,17 +392,17 @@ async function aggregateFromAggregated(db, startTime, endTime, targetBucketSecon
       server_id,
       CAST(bucket / ? AS INTEGER) * ? AS bucket,
       ? AS bucket_size,
-      AVG(cpu_avg), MAX(cpu_max),
-      AVG(ram_avg), MAX(ram_max),
-      AVG(disk_avg), MAX(disk_max),
-      AVG(load_avg_avg),
-      AVG(net_in_speed_avg), AVG(net_out_speed_avg),
-      AVG(net_rx_avg), AVG(net_tx_avg),
-      AVG(processes_avg), AVG(tcp_conn_avg), AVG(udp_conn_avg),
-      AVG(ping_ct_avg), AVG(ping_cu_avg), AVG(ping_cm_avg), AVG(ping_bd_avg),
-      AVG(ram_total_avg), AVG(ram_used_avg),
-      AVG(swap_total_avg), AVG(swap_used_avg),
-      AVG(disk_total_avg), AVG(disk_used_avg)
+      ROUND(AVG(cpu_avg), 2), MAX(cpu_max),
+      ROUND(AVG(ram_avg), 2), MAX(ram_max),
+      ROUND(AVG(disk_avg), 2), MAX(disk_max),
+      ROUND(AVG(load_avg_avg), 2),
+      ROUND(AVG(net_in_speed_avg), 2), ROUND(AVG(net_out_speed_avg), 2),
+      ROUND(AVG(net_rx_avg), 2), ROUND(AVG(net_tx_avg), 2),
+      ROUND(AVG(processes_avg), 2), ROUND(AVG(tcp_conn_avg), 2), ROUND(AVG(udp_conn_avg), 2),
+      ROUND(AVG(ping_ct_avg), 2), ROUND(AVG(ping_cu_avg), 2), ROUND(AVG(ping_cm_avg), 2), ROUND(AVG(ping_bd_avg), 2),
+      ROUND(AVG(ram_total_avg), 2), ROUND(AVG(ram_used_avg), 2),
+      ROUND(AVG(swap_total_avg), 2), ROUND(AVG(swap_used_avg), 2),
+      ROUND(AVG(disk_total_avg), 2), ROUND(AVG(disk_used_avg), 2)
     FROM metrics_aggregated
     WHERE bucket_size = ?
       AND bucket >= ?
