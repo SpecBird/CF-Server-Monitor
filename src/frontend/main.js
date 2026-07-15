@@ -172,50 +172,6 @@ const renderStartupTurnstile = async (siteKey, apiIndex) => {
   }
 }
 
-function applyCspMeta(cspStatic, cspApi) {
-  const turnstileDomain = 'https://challenges.cloudflare.com'
-  const staticDomains = (cspStatic || '').split(',').map(s => s.trim()).filter(Boolean)
-  const apiDomains = (cspApi || '').split(',').map(s => s.trim()).filter(Boolean)
-
-  // 如果没有配置任何域名，则不更新 CSP（保留构建时的配置）
-  if (staticDomains.length === 0 && apiDomains.length === 0) {
-    return
-  }
-
-  // 从现有 CSP 中提取已有的域名
-  const meta = document.querySelector('meta[http-equiv="Content-Security-Policy"]')
-  const existingCsp = meta?.content || ''
-  const domainRegex = /https?:\/\/[^\s';]+/g
-  const existingDomains = existingCsp.match(domainRegex) || []
-
-  // 合并：默认白名单 + API 配置
-  const newDomains = [turnstileDomain, ...staticDomains, ...apiDomains]
-  const mergedDomains = [...new Set([...existingDomains, ...newDomains])].join(' ')
-
-  const csp = [
-    `default-src 'self'`,
-    `script-src 'self' ${mergedDomains}`,
-    `style-src 'self' 'unsafe-inline' ${mergedDomains}`,
-    `img-src 'self' ${mergedDomains} data:`,
-    `font-src 'self' ${mergedDomains}`,
-    `connect-src 'self' ${mergedDomains}`,
-    `frame-src ${turnstileDomain}`,
-    `form-action 'self'`,
-    `object-src 'none'`,
-    `base-uri 'self'`,
-    `frame-ancestors 'none'`
-  ].join(';')
-
-  if (meta) {
-    meta.content = csp
-  } else {
-    const newMeta = document.createElement('meta')
-    newMeta.httpEquiv = 'Content-Security-Policy'
-    newMeta.content = csp
-    document.head.appendChild(newMeta)
-  }
-}
-
 async function initApp() {
   // Load frontend runtime config (apiBase) first so all subsequent
   // HTTP / WebSocket requests go through the configured origin.
@@ -262,11 +218,6 @@ async function initApp() {
     }
   } else {
     config = await fetchConfig()
-  }
-
-  // 应用 CSP 设置 (API settings) - 仅当有配置时才覆盖默认 CSP
-  if (config.csp_static || config.csp_api) {
-    applyCspMeta(config.csp_static, config.csp_api)
   }
 
   // 仅全局模式需要在启动时验证 Turnstile；登录模式在 Admin 页面的登录表单中验证

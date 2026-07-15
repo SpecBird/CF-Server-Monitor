@@ -40,14 +40,16 @@
         <div class="form-row">
           <div class="form-group flex-1">
             <label class="form-label">{{ trans.cspStatic }}</label>
-            <input type="text" v-model="settings.csp_static" class="form-input" placeholder="https://unpkg.com,https://cdn.jsdelivr.net">
+            <input type="text" v-model="settings.csp_static" class="form-input" placeholder="https://unpkg.com,https://cdn.jsdelivr.net" @blur="validateCspField('csp_static')">
             <p class="text-muted text-sm mt-1">{{ trans.cspStaticTip }}</p>
+            <p v-if="cspErrors.csp_static" class="text-danger text-sm">{{ cspErrors.csp_static }}</p>
           </div>
 
           <div class="form-group flex-1">
             <label class="form-label">{{ trans.cspApi }}</label>
-            <input type="text" v-model="settings.csp_api" class="form-input" placeholder="https://api.example.com">
+            <input type="text" v-model="settings.csp_api" class="form-input" placeholder="https://api.example.com" @blur="validateCspField('csp_api')">
             <p class="text-muted text-sm mt-1">{{ trans.cspApiTip }}</p>
+            <p v-if="cspErrors.csp_api" class="text-danger text-sm">{{ cspErrors.csp_api }}</p>
           </div>
         </div>
 
@@ -345,7 +347,9 @@
 </template>
 
 <script setup>
-defineProps({
+import { reactive } from 'vue'
+
+const props = defineProps({
   trans: { type: Object, required: true },
   settings: { type: Object, required: true },
   passwordVisible: { type: Object, required: true },
@@ -363,4 +367,28 @@ defineEmits([
   'save-settings', 'upload-bg',
   'send-test-notification', 'query-d1-usage'
 ])
+
+const cspErrors = reactive({
+  csp_static: '',
+  csp_api: ''
+})
+
+const validateCspField = (field) => {
+  const value = props.settings[field] || ''
+  if (!value) {
+    cspErrors[field] = ''
+    return true
+  }
+  const domains = value.split(',').map(s => s.trim()).filter(Boolean)
+  for (const domain of domains) {
+    if (!/^https:\/\/.+/.test(domain)) {
+      cspErrors[field] = 'Each domain must start with https://'
+      return false
+    }
+  }
+  cspErrors[field] = ''
+  return true
+}
+
+defineExpose({ validateCspField, cspErrors })
 </script>

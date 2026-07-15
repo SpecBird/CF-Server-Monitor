@@ -44,7 +44,16 @@ const cspStaticExtra = process.env.CSP_STATIC
   ? process.env.CSP_STATIC.split(',').map(s => s.trim()).filter(Boolean)
   : [];
 
-const cspApiDomains = [...new Set([...cspApiFromEnv, ...cspApiExtra])];
+// API_BASE 需要同时支持 https 和 wss（WebSocket）
+const apiDomainsWithWs = [];
+for (const domain of [...new Set([...cspApiFromEnv, ...cspApiExtra])]) {
+  apiDomainsWithWs.push(domain);
+  if (domain.startsWith('https://')) {
+    apiDomainsWithWs.push(domain.replace('https://', 'wss://'));
+  }
+}
+
+const cspApiDomains = [...new Set(apiDomainsWithWs)];
 const cspStaticDomains = [...new Set(cspStaticExtra)];
 
 console.log('Config from env:', { apiBase, title, backgroundImage, cspApiDomains, cspStaticDomains });
@@ -91,7 +100,7 @@ for (const file of htmlFiles) {
     let existingDomains = []
     if (existingCspMatch) {
       const existingCsp = existingCspMatch[1]
-      const domainRegex = /https?:\/\/[^\s';]+/g
+      const domainRegex = /https?:\/\/[^\s';]+|wss?:\/\/[^\s';]+/g
       existingDomains = existingCsp.match(domainRegex) || []
     }
     // 合并：默认白名单 + 环境变量配置
@@ -106,10 +115,9 @@ for (const file of htmlFiles) {
       `frame-src ${turnstileDomain}`,
       `form-action 'self'`,
       `object-src 'none'`,
-      `base-uri 'self'`,
-      `frame-ancestors 'none'`
+      `base-uri 'self'`
     ].join(';');
-    html = html.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/, `<meta http-equiv="Content-Security-Policy" content="${escapeHtml(csp)}">`);
+    html = html.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/, `<meta http-equiv="Content-Security-Policy" content="${csp}">`);
   }
 
   // 4. 注入背景图样式

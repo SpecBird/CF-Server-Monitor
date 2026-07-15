@@ -18,6 +18,18 @@ function isValidName(name) {
   return name && typeof name === 'string' && name.trim().length > 0 && name.length <= 100;
 }
 
+function sanitizeCspDomains(input) {
+  if (!input || typeof input !== 'string') return '';
+  return input
+    .split(',')
+    .map(s => s.trim())
+    .filter(domain => {
+      // 只允许 https:// 开头的有效域名
+      return domain.length > 0 && /^https:\/\/[a-zA-Z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+$/.test(domain);
+    })
+    .join(',');
+}
+
 async function deleteServer(db, id) {
   try {
     const stmt1 = db.prepare(`PRAGMA foreign_key_list(metrics_history)`);
@@ -337,7 +349,12 @@ export async function handleAdminAPI(request, env, sys, loadFullSettings = null)
       const appearanceOptions = {};
       for (const field of APPEARANCE_FIELDS) {
         if (settings[field] !== undefined) {
-          appearanceOptions[field] = settings[field];
+          // CSP 字段格式校验：只允许 https:// 开头的域名，逗号分隔
+          if (field === 'csp_static' || field === 'csp_api') {
+            appearanceOptions[field] = sanitizeCspDomains(settings[field]);
+          } else {
+            appearanceOptions[field] = settings[field];
+          }
         }
       }
       await env.DB.prepare(

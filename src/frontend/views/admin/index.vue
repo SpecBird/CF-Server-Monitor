@@ -506,7 +506,9 @@ const settings = ref({
   custom_ct: '',
   custom_cu: '',
   custom_cm: '',
-  custom_bd: ''
+  custom_bd: '',
+  csp_static: '',
+  csp_api: ''
 })
 const apiSecret = ref('')
 const changeAdminPassword = ref(false)
@@ -772,7 +774,9 @@ const loadSettings = async () => {
         custom_ct: settingsData.custom_ct || '',
         custom_cu: settingsData.custom_cu || '',
         custom_cm: settingsData.custom_cm || '',
-        custom_bd: settingsData.custom_bd || ''
+        custom_bd: settingsData.custom_bd || '',
+        csp_static: settingsData.csp_static || '',
+        csp_api: settingsData.csp_api || ''
       }
       changeAdminPassword.value = false
       apiSecret.value = data.api_secret || ''
@@ -831,6 +835,20 @@ const saveSettings = async () => {
     }
   }
 
+  // CSP 字段格式校验
+  for (const field of ['csp_static', 'csp_api']) {
+    const value = settings.value[field] || ''
+    if (value) {
+      const domains = value.split(',').map(s => s.trim()).filter(Boolean)
+      for (const domain of domains) {
+        if (!/^https:\/\/.+/.test(domain)) {
+          validationError.value = trans.value.cspInvalidDomain
+          return
+        }
+      }
+    }
+  }
+
   saving.value = true
   saveResult.value = null
 
@@ -861,7 +879,9 @@ const saveSettings = async () => {
       custom_ct: settings.value.custom_ct,
       custom_cu: settings.value.custom_cu,
       custom_cm: settings.value.custom_cm,
-      custom_bd: settings.value.custom_bd
+      custom_bd: settings.value.custom_bd,
+      csp_static: settings.value.csp_static || '',
+      csp_api: settings.value.csp_api || ''
     }
   }
 

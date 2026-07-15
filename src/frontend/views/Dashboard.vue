@@ -10,7 +10,7 @@
     <template v-else>
     <div class="nav-area">
       <div class="header-row">
-        <div class="site-title">$ ./{{ sysConfig.site_title || DEFAULT_SITE_TITLE }}</div>
+        <div class="site-title">$ {{ sysConfig.site_title || DEFAULT_SITE_TITLE }}</div>
         <div class="controls-group">
           <div class="view-toggle">
             <button 
@@ -688,7 +688,7 @@ const startLiveSocket = () => {
 const initMap = () => {
   if (!window.L) {
     const script = document.createElement('script')
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+    script.src = '/leaflet.js'
     script.onload = () => {
       loadLeafletCSS()
     }
@@ -701,7 +701,7 @@ const initMap = () => {
 const loadLeafletCSS = () => {
   const link = document.createElement('link')
   link.rel = 'stylesheet'
-  link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+  link.href = '/leaflet.css'
   document.head.appendChild(link)
   link.onload = () => {
     createMap()
@@ -720,7 +720,7 @@ const createMap = () => {
 
   window.L.control.zoom({ position: 'bottomright' }).addTo(window.myMap)
 
-  fetch('https://cdn.jsdelivr.net/npm/@surbowl/world-geo-json-zh@2.1.5/world.zh.json')
+  fetch('/world.zh.json')
     .then(res => res.json())
     .then(worldGeoJson => {
       window.worldGeoJson = worldGeoJson

@@ -155,6 +155,9 @@
 | `API_USER_NAME`  | 自定义用户名（非必填）        | 管理后台用户名 新版已移除，默认用户名admin               |
 | `API_SECRET`     | API 认证密钥（必填）       | 探针认证密钥 & 默认管理后台密码 建议使用随机密码,不要包含特殊字符比如% |
 | `D1_DATABASE_ID` | 第二步获取的 Database ID | D1 数据库 ID                              |
+| `API_BASE`       | API 域名（非必填）        | 多站点模式下的 API 地址，多个用逗号分隔                    |
+| `CSP_STATIC`     | 静态文件域名（非必填）       | 额外的 CSP 静态资源白名单，多个用逗号分隔                   |
+| `CSP_API`        | API 域名（非必填）        | 额外的 CSP API 白名单，多个用逗号分隔                     |
 
 ### 第五步：部署
 
@@ -389,6 +392,37 @@ irm https://你的项目.你的子域.workers.dev/cf-server-monitor.ps1 -OutFile
 2. 值设置为允许跨域的域名，多个域名用逗号分隔，例如：`https://example.com,https://www.example.com`
 3. 不设置此变量或留空时，默认仅允许同源请求
 
+### CSP 内容安全策略配置（可选）
+
+Content Security Policy (CSP) 是一种安全层，用于检测和缓解某些类型的攻击，包括跨站脚本 (XSS) 和数据注入攻击。
+
+**默认白名单**（已内置）：
+
+- `https://challenges.cloudflare.com` - Cloudflare Turnstile
+- `https://static.cloudflareinsights.com` - Cloudflare Analytics
+- `https://fonts.googleapis.com` - Google Fonts CSS
+- `https://fonts.gstatic.com` - Google Fonts 文件
+
+**后台配置**：
+
+如果需要添加第三方 CSS/JS 资源，可在管理后台 → 外观 设置中配置：
+
+| 字段 | 说明 | 示例 |
+|------|------|------|
+| CSP 静态文件域名 | 允许加载的静态资源域名 | `https://unpkg.com,https://cdnjs.cloudflare.com` |
+| CSP API 域名 | 允许连接的 API 域名 | `https://api.example.com` |
+
+> **安全提示**：添加第三方 CSS/JS 时，请确保来源安全可靠。建议将资源托管在自己的 GitHub 仓库中，通过 CDN 调用。使用不当可能带来严重安全风险。
+
+**GitHub Pages 环境变量配置**：
+
+| 环境变量 | 说明 | 示例 |
+|---------|------|------|
+| `CSP_STATIC` | 额外的静态文件域名 | `https://unpkg.com` |
+| `CSP_API` | 额外的 API 域名 | `https://api.example.com` |
+
+> **注意**：`API_BASE` 环境变量会自动添加到 CSP API 白名单中。
+
 ### Cloudflare 额度查询（可选）
 
 如需在后台查询 D1 当日读写额度和 Workers 请求量：
@@ -505,9 +539,35 @@ irm https://你的项目.你的子域.workers.dev/cf-server-monitor.ps1 -OutFile
 - 小组件会显示服务器在线状态、CPU/RAM/磁盘/流量、实时上下行速率和更新时间。
 - 脚本设置了 60 秒后刷新，但 iOS 会根据系统策略决定实际刷新时间。
 
-### 主题切换
+### 主题切换与自定义
 
-管理后台支持自定义 CSS主题
+管理后台支持以下自定义功能：
+
+| 功能 | 说明 | 位置 |
+|------|------|------|
+| 自定义 CSS 主题 | 修改页面样式 | 后台 → 外观 → 自定义脚本 |
+| 自定义 `<head>` | 添加外部 CSS/JS、Meta 标签等 | 后台 → 外观 → 自定义 `<head>` |
+| 背景图片 | 自定义页面背景 | 后台 → 外观 → 背景图片 |
+| CSP 白名单 | 允许加载的第三方资源域名 | 后台 → 外观 → CSP 设置 |
+
+**自定义 `<head>` 使用示例**：
+
+```html
+<!-- 引入外部字体 -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+
+<!-- 自定义 Meta 标签 -->
+<meta name="description" content="My Server Monitor">
+
+<!-- 内联样式 -->
+<style>body { font-family: 'Inter', sans-serif; }</style>
+```
+
+> **安全警告**：
+> - 添加第三方 CSS/JS 时，请确保来源安全可靠
+> - 建议将资源托管在自己的 GitHub 仓库中，通过 CDN 调用
+> - 使用不当可能带来 XSS 攻击、数据泄露等严重安全风险
+> - 外部资源需要添加到 CSP 静态文件域名白名单中才能正常加载
 
 ### 主题开发
 

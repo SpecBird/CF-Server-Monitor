@@ -164,7 +164,7 @@
 
 #### 地图视图
 - 动态加载 Leaflet.js
-- 加载世界 GeoJSON（`https://cdn.jsdelivr.net/npm/@surbowl/world-geo-json-zh@2.1.5/world.zh.json`）
+- 加载世界 GeoJSON（`/world.zh.json`）
 - 按 `regionStats` 在对应国家高亮 + 标记服务器数量
 - 国家坐标映射表（US、CN、JP、HK、SG 等 30+ 国家/地区）
 - 主题切换时重绘标记颜色

@@ -3,8 +3,8 @@
     <div class="server-card-header">
       <div class="server-identity">
         <div class="status-indicator" :style="{ background: statusColor, boxShadow: '0 0 8px ' + statusColor }"></div>
-        <span v-if="regionCode !== 'xx'">
-          <img :src="'/flags/' + regionCode + '.svg'" :alt="regionCode" style="vertical-align: middle; margin-right: 5px; border-radius: 2px; filter: brightness(0.9);">
+        <span v-if="regionCode && regionCode !== 'xx'">
+          <img class="flag-img" :src="'/flags/' + regionCode + '.svg'" :alt="regionCode">
         </span>
         <span v-else>🏳️</span>
         <span class="server-name">{{ server.name }}</span>
